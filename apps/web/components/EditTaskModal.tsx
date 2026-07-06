@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useTaskStore } from "@/store/tasks";
+import { useEscapeKey } from "@/hooks/useKeyboardShortcuts";
 import type { Task, Priority, TaskStatus } from "@task-app/shared";
 
 interface EditTaskModalProps {
@@ -25,6 +26,7 @@ const STATUSES: { value: TaskStatus; label: string }[] = [
 
 export function EditTaskModal({ task, onClose }: EditTaskModalProps) {
   const { updateTask, projects } = useTaskStore();
+  useEscapeKey(onClose);
 
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description ?? "");

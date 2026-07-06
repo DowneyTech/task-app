@@ -1,15 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useTaskStore } from "@/store/tasks";
+import { useUIStore } from "@/store/ui";
+import { useTaskListShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { TaskItem } from "@/components/TaskItem";
 import { AddTaskForm } from "@/components/AddTaskForm";
 import { EditTaskModal } from "@/components/EditTaskModal";
-import type { Task } from "@task-app/shared";
 
 export default function TodayPage() {
   const { tasks, loading, fetchTasks } = useTaskStore();
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const selectedTaskId = useUIStore((s) => s.selectedTaskId);
+  const setSelectedTaskId = useUIStore((s) => s.setSelectedTaskId);
+  const editingTaskId = useUIStore((s) => s.editingTaskId);
+  const openEditModal = useUIStore((s) => s.openEditModal);
+  const closeEditModal = useUIStore((s) => s.closeEditModal);
 
   useEffect(() => {
     fetchTasks({ today: true });
@@ -17,6 +22,9 @@ export default function TodayPage() {
 
   const todo = tasks.filter((t) => t.status !== "DONE");
   const done = tasks.filter((t) => t.status === "DONE");
+  const editingTask = tasks.find((t) => t.id === editingTaskId) ?? null;
+
+  useTaskListShortcuts([...todo, ...done]);
 
   return (
     <div className="max-w-2xl mx-auto px-8 py-8">
@@ -36,7 +44,13 @@ export default function TodayPage() {
         <>
           <ul className="mb-2">
             {todo.map((task) => (
-              <TaskItem key={task.id} task={task} onEdit={setEditingTask} />
+              <TaskItem
+                key={task.id}
+                task={task}
+                onEdit={(t) => openEditModal(t.id)}
+                selected={task.id === selectedTaskId}
+                onSelect={(t) => setSelectedTaskId(t.id)}
+              />
             ))}
           </ul>
 
@@ -51,7 +65,13 @@ export default function TodayPage() {
               </h2>
               <ul>
                 {done.map((task) => (
-                  <TaskItem key={task.id} task={task} onEdit={setEditingTask} />
+                  <TaskItem
+                    key={task.id}
+                    task={task}
+                    onEdit={(t) => openEditModal(t.id)}
+                    selected={task.id === selectedTaskId}
+                    onSelect={(t) => setSelectedTaskId(t.id)}
+                  />
                 ))}
               </ul>
             </div>
@@ -60,7 +80,7 @@ export default function TodayPage() {
       )}
 
       {editingTask && (
-        <EditTaskModal task={editingTask} onClose={() => setEditingTask(null)} />
+        <EditTaskModal task={editingTask} onClose={closeEditModal} />
       )}
     </div>
   );

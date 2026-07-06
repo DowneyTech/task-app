@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Task } from "@task-app/shared";
 import { cn, priorityColor, priorityLabel, formatDueDate, isOverdue } from "@/lib/utils";
 import { useTaskStore } from "@/store/tasks";
@@ -9,13 +9,20 @@ import { PomodoroTimer } from "./PomodoroTimer";
 interface TaskItemProps {
   task: Task;
   onEdit?: (task: Task) => void;
+  selected?: boolean;
+  onSelect?: (task: Task) => void;
 }
 
-export function TaskItem({ task, onEdit }: TaskItemProps) {
+export function TaskItem({ task, onEdit, selected, onSelect }: TaskItemProps) {
   const { completeTask, deleteTask } = useTaskStore();
   const [completing, setCompleting] = useState(false);
   const [showPomodoro, setShowPomodoro] = useState(false);
+  const liRef = useRef<HTMLLIElement>(null);
   const done = task.status === "DONE";
+
+  useEffect(() => {
+    if (selected) liRef.current?.scrollIntoView({ block: "nearest" });
+  }, [selected]);
 
   const handleComplete = async () => {
     setCompleting(true);
@@ -27,7 +34,12 @@ export function TaskItem({ task, onEdit }: TaskItemProps) {
 
   return (
     <li
-      className="group flex items-start gap-3 py-2.5 px-1 border-b border-border/60 transition-colors hover:bg-surface-subtle"
+      ref={liRef}
+      onClick={() => onSelect?.(task)}
+      className={cn(
+        "group flex items-start gap-3 py-2.5 px-1 border-b border-border/60 transition-colors hover:bg-surface-subtle rounded-md",
+        selected && "bg-brand/5 ring-1 ring-inset ring-brand/40"
+      )}
     >
       {/* チェックボックス */}
       <button

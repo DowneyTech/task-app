@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { useTaskStore } from "@/store/tasks";
+import { useUIStore } from "@/store/ui";
+import { useEscapeKey } from "@/hooks/useKeyboardShortcuts";
 import type { Priority } from "@task-app/shared";
 
 interface AddTaskFormProps {
@@ -19,7 +21,9 @@ const PRIORITIES: { value: Priority; label: string; color: string }[] = [
 
 export function AddTaskForm({ projectId, onAdded }: AddTaskFormProps) {
   const { createTask, projects } = useTaskStore();
-  const [open, setOpen] = useState(false);
+  const open = useUIStore((s) => s.addTaskFormOpen);
+  const openForm = useUIStore((s) => s.openAddTaskForm);
+  const closeForm = useUIStore((s) => s.closeAddTaskForm);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -27,14 +31,20 @@ export function AddTaskForm({ projectId, onAdded }: AddTaskFormProps) {
   const [selectedProject, setSelectedProject] = useState(projectId ?? "");
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => closeForm, [closeForm]);
+
   const reset = () => {
     setTitle("");
     setDescription("");
     setDueDate("");
     setPriority("NONE");
     setSelectedProject(projectId ?? "");
-    setOpen(false);
+    closeForm();
   };
+
+  useEscapeKey(() => {
+    if (open) reset();
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,7 +68,7 @@ export function AddTaskForm({ projectId, onAdded }: AddTaskFormProps) {
   if (!open) {
     return (
       <button
-        onClick={() => setOpen(true)}
+        onClick={openForm}
         className="flex items-center gap-2 w-full py-2 px-1 text-text-muted hover:text-brand transition-colors group"
       >
         <span className="w-4 h-4 rounded-full border-2 border-current flex items-center justify-center group-hover:border-brand">

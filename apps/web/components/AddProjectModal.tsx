@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTaskStore } from "@/store/tasks";
+import { useEscapeKey } from "@/hooks/useKeyboardShortcuts";
 import { cn } from "@/lib/utils";
 
 const COLORS = [
@@ -16,6 +17,7 @@ interface AddProjectModalProps {
 
 export function AddProjectModal({ onClose }: AddProjectModalProps) {
   const { createProject } = useTaskStore();
+  useEscapeKey(onClose);
   const [name, setName] = useState("");
   const [color, setColor] = useState(COLORS[0]);
   const [loading, setLoading] = useState(false);
