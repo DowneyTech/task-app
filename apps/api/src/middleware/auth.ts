@@ -14,6 +14,10 @@ declare module "hono" {
   }
 }
 
+const jwtSecretRaw = process.env.JWT_SECRET;
+if (!jwtSecretRaw) throw new Error("JWT_SECRET 環境変数が設定されていません");
+const JWT_SECRET = new TextEncoder().encode(jwtSecretRaw);
+
 export const authMiddleware = createMiddleware(async (c, next) => {
   const authHeader = c.req.header("Authorization");
   if (!authHeader?.startsWith("Bearer ")) {
@@ -21,10 +25,9 @@ export const authMiddleware = createMiddleware(async (c, next) => {
   }
 
   const token = authHeader.slice(7);
-  const secret = new TextEncoder().encode(process.env.JWT_SECRET ?? "secret");
 
   try {
-    const { payload } = await jwtVerify(token, secret);
+    const { payload } = await jwtVerify(token, JWT_SECRET);
     const { sub, email } = payload as unknown as JwtPayload;
 
     const user = await prisma.user.findUnique({ where: { id: sub } });

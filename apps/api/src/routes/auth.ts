@@ -19,12 +19,15 @@ const loginSchema = z.object({
   password: z.string().min(1),
 });
 
+const jwtSecretRaw = process.env.JWT_SECRET;
+if (!jwtSecretRaw) throw new Error("JWT_SECRET 環境変数が設定されていません");
+const JWT_SECRET = new TextEncoder().encode(jwtSecretRaw);
+
 const makeToken = async (userId: string, email: string): Promise<string> => {
-  const secret = new TextEncoder().encode(process.env.JWT_SECRET ?? "secret");
   return new SignJWT({ sub: userId, email })
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("30d")
-    .sign(secret);
+    .sign(JWT_SECRET);
 };
 
 authRoutes.post("/register", zValidator("json", registerSchema), async (c) => {

@@ -7,6 +7,9 @@ import { authMiddleware } from "../middleware/auth";
 export const taskRoutes = new Hono();
 taskRoutes.use("*", authMiddleware);
 
+const PRIORITY_ORDER: Record<string, number> = { HIGH: 0, MEDIUM: 1, LOW: 2, NONE: 3 };
+const STATUS_ORDER: Record<string, number> = { TODO: 0, IN_PROGRESS: 1, DONE: 2 };
+
 const priorityEnum = z.enum(["HIGH", "MEDIUM", "LOW", "NONE"]);
 const statusEnum = z.enum(["TODO", "IN_PROGRESS", "DONE"]);
 
@@ -59,7 +62,8 @@ taskRoutes.get("/", async (c) => {
   const userId = c.get("userId");
   const { projectId, status, today } = c.req.query();
 
-  const where: Record<string, unknown> = { userId };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const where: Record<string, any> = { userId };
   if (projectId) where.projectId = projectId;
   if (status) where.status = status;
   if (today === "true") {
@@ -70,16 +74,23 @@ taskRoutes.get("/", async (c) => {
     where.dueDate = { gte: start, lte: end };
   }
 
-  const tasks = await prisma.task.findMany({
+  const rawTasks = await prisma.task.findMany({
     where,
-    orderBy: [{ status: "asc" }, { priority: "asc" }, { createdAt: "desc" }],
+    orderBy: { createdAt: "desc" },
     include: {
       project: { select: { id: true, name: true, color: true } },
       _count: { select: { pomodoros: true } },
     },
   });
 
-  return c.json(tasks.map(toTask));
+  type Sortable = { status: string; priority: string };
+  rawTasks.sort((a: Sortable, b: Sortable) => {
+    const s = STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
+    if (s !== 0) return s;
+    return PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
+  });
+
+  return c.json(rawTasks.map(toTask));
 });
 
 taskRoutes.post("/", zValidator("json", createSchema), async (c) => {
@@ -116,6 +127,11 @@ taskRoutes.put("/:id", zValidator("json", updateSchema), async (c) => {
 
   const existing = await prisma.task.findFirst({ where: { id, userId } });
   if (!existing) return c.json({ error: "Not found" }, 404);
+
+  if (data.projectId) {
+    const project = await prisma.project.findFirst({ where: { id: data.projectId, userId } });
+    if (!project) return c.json({ error: "Project not found" }, 404);
+  }
 
   const task = await prisma.task.update({
     where: { id },

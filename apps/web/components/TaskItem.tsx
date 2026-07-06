@@ -15,7 +15,6 @@ export function TaskItem({ task, onEdit }: TaskItemProps) {
   const { completeTask, deleteTask } = useTaskStore();
   const [completing, setCompleting] = useState(false);
   const [showPomodoro, setShowPomodoro] = useState(false);
-  const [hovered, setHovered] = useState(false);
   const done = task.status === "DONE";
 
   const handleComplete = async () => {
@@ -28,12 +27,7 @@ export function TaskItem({ task, onEdit }: TaskItemProps) {
 
   return (
     <li
-      className={cn(
-        "group flex items-start gap-3 py-2.5 px-1 border-b border-border/60 transition-colors",
-        hovered && "bg-surface-subtle"
-      )}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      className="group flex items-start gap-3 py-2.5 px-1 border-b border-border/60 transition-colors hover:bg-surface-subtle"
     >
       {/* チェックボックス */}
       <button
@@ -101,7 +95,7 @@ export function TaskItem({ task, onEdit }: TaskItemProps) {
       </div>
 
       {/* アクション */}
-      <div className={cn("flex items-center gap-1 shrink-0 transition-opacity", hovered ? "opacity-100" : "opacity-0")}>
+      <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
         <button
           onClick={() => setShowPomodoro(!showPomodoro)}
           className="p-1 rounded hover:bg-surface-muted text-text-muted hover:text-brand transition-colors"
@@ -135,9 +129,11 @@ export function TaskItem({ task, onEdit }: TaskItemProps) {
       </div>
 
       {showPomodoro && (
-        <div className="absolute right-4 mt-8 z-10">
-          <PomodoroTimer taskId={task.id} taskTitle={task.title} onClose={() => setShowPomodoro(false)} />
-        </div>
+        <PomodoroTimer
+          taskId={task.id}
+          taskTitle={task.title}
+          onClose={() => setShowPomodoro(false)}
+        />
       )}
     </li>
   );

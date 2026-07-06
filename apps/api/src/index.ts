@@ -13,7 +13,7 @@ app.use("*", logger());
 app.use(
   "*",
   cors({
-    origin: ["http://localhost:3000", "http://localhost:8081"],
+    origin: (process.env.CORS_ORIGINS ?? "http://localhost:3000,http://localhost:8081").split(","),
     credentials: true,
   })
 );
