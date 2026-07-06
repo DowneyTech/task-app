@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "TaskApp",
+    "slug": "task-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "taskapp",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.taskapp.mobile"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#db4035"
+      },
+      "package": "com.taskapp.mobile"
+    },
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
