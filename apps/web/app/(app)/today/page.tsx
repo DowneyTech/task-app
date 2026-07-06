@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useTaskStore } from "@/store/tasks";
 import { TaskItem } from "@/components/TaskItem";
 import { AddTaskForm } from "@/components/AddTaskForm";
+import { EditTaskModal } from "@/components/EditTaskModal";
 import type { Task } from "@task-app/shared";
 
 export default function TodayPage() {
@@ -50,12 +51,16 @@ export default function TodayPage() {
               </h2>
               <ul>
                 {done.map((task) => (
-                  <TaskItem key={task.id} task={task} />
+                  <TaskItem key={task.id} task={task} onEdit={setEditingTask} />
                 ))}
               </ul>
             </div>
           )}
         </>
+      )}
+
+      {editingTask && (
+        <EditTaskModal task={editingTask} onClose={() => setEditingTask(null)} />
       )}
     </div>
   );

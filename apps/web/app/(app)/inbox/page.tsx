@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useTaskStore } from "@/store/tasks";
 import { TaskItem } from "@/components/TaskItem";
 import { AddTaskForm } from "@/components/AddTaskForm";
+import { EditTaskModal } from "@/components/EditTaskModal";
+import type { Task } from "@task-app/shared";
 
 export default function InboxPage() {
   const { tasks, loading, fetchTasks } = useTaskStore();
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   useEffect(() => {
     fetchTasks();
@@ -32,7 +35,7 @@ export default function InboxPage() {
         <>
           <ul className="mb-2">
             {todo.map((task) => (
-              <TaskItem key={task.id} task={task} />
+              <TaskItem key={task.id} task={task} onEdit={setEditingTask} />
             ))}
           </ul>
           <div className="mt-2">
@@ -45,12 +48,16 @@ export default function InboxPage() {
               </h2>
               <ul>
                 {done.map((task) => (
-                  <TaskItem key={task.id} task={task} />
+                  <TaskItem key={task.id} task={task} onEdit={setEditingTask} />
                 ))}
               </ul>
             </div>
           )}
         </>
+      )}
+
+      {editingTask && (
+        <EditTaskModal task={editingTask} onClose={() => setEditingTask(null)} />
       )}
     </div>
   );

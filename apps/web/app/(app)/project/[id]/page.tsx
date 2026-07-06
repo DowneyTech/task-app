@@ -1,14 +1,17 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useTaskStore } from "@/store/tasks";
 import { TaskItem } from "@/components/TaskItem";
 import { AddTaskForm } from "@/components/AddTaskForm";
+import { EditTaskModal } from "@/components/EditTaskModal";
+import type { Task } from "@task-app/shared";
 
 export default function ProjectPage() {
   const { id } = useParams<{ id: string }>();
   const { tasks, projects, loading, fetchTasks, deleteProject } = useTaskStore();
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   const project = projects.find((p) => p.id === id);
 
@@ -57,7 +60,7 @@ export default function ProjectPage() {
         <>
           <ul className="mb-2">
             {todo.map((task) => (
-              <TaskItem key={task.id} task={task} />
+              <TaskItem key={task.id} task={task} onEdit={setEditingTask} />
             ))}
           </ul>
           <div className="mt-2">
@@ -70,12 +73,16 @@ export default function ProjectPage() {
               </h2>
               <ul>
                 {done.map((task) => (
-                  <TaskItem key={task.id} task={task} />
+                  <TaskItem key={task.id} task={task} onEdit={setEditingTask} />
                 ))}
               </ul>
             </div>
           )}
         </>
+      )}
+
+      {editingTask && (
+        <EditTaskModal task={editingTask} onClose={() => setEditingTask(null)} />
       )}
     </div>
   );
