@@ -18,8 +18,8 @@ services:
 
   api:
     build:
-      context: ./apps/api
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: apps/api/Dockerfile
     container_name: taskapp-api
     environment:
       DATABASE_URL: "postgresql://taskapp:taskapp@db:5432/taskapp"
@@ -29,8 +29,10 @@ services:
     ports:
       - "3001:3001"
     volumes:
-      - ./apps/api:/app
+      - ./apps/api:/app/apps/api
+      - ./packages/shared:/app/packages/shared
       - /app/node_modules
+      - /app/apps/api/node_modules
     depends_on:
       db:
         condition: service_healthy
@@ -38,17 +40,19 @@ services:
 
   web:
     build:
-      context: ./apps/web
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: apps/web/Dockerfile
     container_name: taskapp-web
     environment:
       NEXT_PUBLIC_API_URL: "http://localhost:3001"
     ports:
       - "3000:3000"
     volumes:
-      - ./apps/web:/app
+      - ./apps/web:/app/apps/web
+      - ./packages/shared:/app/packages/shared
       - /app/node_modules
-      - /app/.next
+      - /app/apps/web/node_modules
+      - /app/apps/web/.next
     depends_on:
       - api
     command: pnpm dev
